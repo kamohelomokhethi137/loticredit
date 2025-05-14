@@ -1,33 +1,44 @@
+// index.js
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { SnackbarProvider } from 'notistack'; 
+import { SnackbarProvider } from 'notistack';
+
 import './index.css';
+
+import App from './App';
 import Signin from './components/Signin';
 import Signup from './components/Signup';
-import App from './App';
 import ConsumerDashboard from './components/ConsumerDashboard';
 import LendersDashboard from './components/LendersDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import PageNotFound from './components/PageNotFound'; 
+import PageNotFound from './components/PageNotFound';
 
+const root = createRoot(document.getElementById('root'));
 
-createRoot(document.getElementById('root')).render(
+root.render(
   <StrictMode>
     <SnackbarProvider 
       maxSnack={3}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }} // position
-      autoHideDuration={3000} // how long snackbars show
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      autoHideDuration={3000}
     >
       <BrowserRouter>
         <Routes>
+          {/* Main landing page*/}
           <Route path="/" element={<App />} />
+          
+          {/* Auth routes */}
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="admin" element={<AdminDashboard/>} />
-          <Route path="/ConsumerDashboard" element={<ConsumerDashboard />} />
-          <Route path="/lendersDashboard" element={<LendersDashboard/>} />
-          <Route path="*" element={<PageNotFound/>} />
+
+          {/* Dashboards */}
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/consumer-dashboard" element={<ConsumerDashboard />} />
+          <Route path="/lenders-dashboard" element={<LendersDashboard />} />
+
+          {/* 404 - Catch-all */}
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
       </BrowserRouter>
     </SnackbarProvider>
