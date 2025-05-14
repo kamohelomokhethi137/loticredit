@@ -25,7 +25,7 @@ root.render(
     >
       <BrowserRouter>
         <Routes>
-          {/* Main landing page*/}
+          {/* landing page*/}
           <Route path="/" element={<App />} />
           
           {/* Auth routes */}
