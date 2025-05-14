@@ -8,7 +8,6 @@ import Signup from './components/Signup';
 import App from './App';
 import ConsumerDashboard from './components/ConsumerDashboard';
 import LendersDashboard from './components/LendersDashboard';
-// import Admin from './components/Admin';
 import AdminDashboard from './components/AdminDashboard';
 import PageNotFound from './components/PageNotFound'; 
 

@@ -240,7 +240,7 @@ const SignupForm = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Or continue with
+                  Or
                 </span>
               </div>
             </div>

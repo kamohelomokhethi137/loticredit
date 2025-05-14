@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import Navbar from './Navbar';
-import Footer from './Footer'
+import Navbar from './layout/Navbar';
+import image1 from '../assets/2.jpg';
+import image2 from '../assets/img.png';
+import image3 from '../assets/3.png';
+import Footer from './layout/Footer'
 import Testimonials from './Testimonials';
 
 
@@ -12,6 +15,40 @@ function LandingPage() {
   const [activeTab, setActiveTab] = useState('lenders');
   const [darkMode, setDarkMode] = useState(false);
   
+
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const images = [
+      {
+        url: image1,
+        alt: 'Financial advisors meeting'
+      },
+      {
+        url: image2,
+        alt: 'Credit card and money'
+      },
+      {
+        url: image3,
+        alt: 'Business handshake'
+      }
+    ];
+
+    const nextImage = () => {
+      setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+    };
+
+    const prevImage = () => {
+      setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+    };
+
+// Auto-rotate effect
+useEffect(() => {
+  const interval = setInterval(() => {
+    nextImage();
+  }, 5900);
+  return () => clearInterval(interval);
+}, []);
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -23,8 +60,7 @@ function LandingPage() {
       }
     }
   };
-  
-  const itemVariants = {
+    const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
@@ -80,43 +116,79 @@ function LandingPage() {
         {/* Hero Section with Dotted Background */}
 
         
-        <motion.div 
-          ref={heroRef}
-          initial="hidden"
-          animate={heroInView ? "visible" : "hidden"}
-          variants={containerVariants}
-          className="relative pt-24 pb-16 px-4 sm:px-6 lg:px-8 text-white overflow-hidden">
+          <motion.div 
+            ref={heroRef}
+            initial="hidden"
+            animate={heroInView ? "visible" : "hidden"}
+            variants={containerVariants}
+            className="relative pt-24 pb-16 px-4 sm:px-6 lg:px-8 text-white overflow-hidden">
 
+            {/* Image Carousel Background */}
+            <div className="absolute inset-0 overflow-hidden">
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={currentImageIndex}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 1.5 }}
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <img 
+                    src={images[currentImageIndex].url} 
+                    alt={images[currentImageIndex].alt}
+                    className="w-full h-full object-cover"
+                  />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/80 via-gray-900/80 to-purple-900/80 blur-xl opacity-90"></div>
 
-        
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/90 to-blue-600/90"></div>
-          
-          <div className="relative max-w-7xl mx-auto text-center z-10">
-            <motion.h1 variants={itemVariants} className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-              Smart Credit Solutions for Everyone
-            </motion.h1>
-            <motion.p variants={itemVariants} className="mt-6 text-xl max-w-3xl mx-auto">
-              Empowering lenders with data-driven decisions and helping consumers understand their credit health.
-            </motion.p>
-            <motion.div variants={itemVariants} className="mt-10 flex justify-center space-x-6">
-              <button 
-                onClick={() => setActiveTab('lenders')}
-                className={`px-8 py-3 rounded-md font-medium ${activeTab === 'lenders' ? 'bg-white text-cyan-600' : 'bg-cyan-700 text-white hover:bg-cyan-800'}`}
-              >
-                For Lenders
-              </button>
-              <button 
-                onClick={() => setActiveTab('consumers')}
-                className={`px-8 py-3 rounded-md font-medium ${activeTab === 'consumers' ? 'bg-white text-green-600' : 'bg-green-600 text-white hover:bg-green-700'}`}
-              >
-                For Consumers
-              </button>
-            </motion.div>
-          </div>
-        </motion.div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation Arrows - Hidden on mobile */}
+            <button 
+              onClick={prevImage}
+              className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={nextImage}
+              className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Content */}
+            <div className="relative max-w-7xl mx-auto text-center z-10">
+              <motion.h1 variants={itemVariants} className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+                Smart Credit Solutions for Everyone
+              </motion.h1>
+              <motion.p variants={itemVariants} className="mt-6 text-xl max-w-3xl mx-auto">
+                Empowering lenders with data-driven decisions and helping consumers understand their credit health.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-10 flex justify-center space-x-6">
+                <button 
+                  onClick={() => setActiveTab('lenders')}
+                  className={`px-8 py-3 rounded-md font-medium ${activeTab === 'lenders' ? 'bg-white text-cyan-600' : 'bg-cyan-700 text-white hover:bg-cyan-800'}`}
+                >
+                  For Lenders
+                </button>
+                <button 
+                  onClick={() => setActiveTab('consumers')}
+                  className={`px-8 py-3 rounded-md font-medium ${activeTab === 'consumers' ? 'bg-white text-green-600' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                >
+                  For Consumers
+                </button>
+              </motion.div>
+            </div>
+          </motion.div>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
         <AnimatePresence mode="wait">
   {/* Lender Section */}
   {activeTab === 'lenders' && (
