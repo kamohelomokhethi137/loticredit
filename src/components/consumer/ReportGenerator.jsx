@@ -1,0 +1,165 @@
+import React from 'react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
+const ReportGenerator = ({ generateReport, isGenerating }) => {
+  return (
+    <button 
+      onClick={generateReport}
+      disabled={isGenerating}
+      className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200 ${
+        isGenerating ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
+    >
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        className={`h-5 w-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} 
+        viewBox="0 0 20 20" 
+        fill="currentColor"
+      >
+        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+      {isGenerating ? 'Generating...' : 'Download Report'}
+    </button>
+  );
+};
+
+export const generatePDFReport = async (
+  userProfile,
+  creditScoreRef,
+  creditTrendRef,
+  creditUtilizationRef,
+  paymentHistoryRef,
+  riskIndicatorsRef,
+  enqueueSnackbar
+) => {
+  try {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const lineHeight = 7;
+    let yPos = 20;
+    
+    // Validate inputs
+    if (!userProfile || !userProfile.name || !userProfile.email) {
+      throw new Error('Invalid user profile data');
+    }
+
+    // Show generating notification
+    const notificationKey = enqueueSnackbar('Generating report...', { 
+      variant: 'info',
+      persist: true
+    });
+
+    // Add header
+    doc.setFontSize(22);
+    doc.setTextColor(40);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Credit Dashboard Report', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Add report date
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Add user information
+    doc.setFontSize(16);
+    doc.setTextColor(40);
+    doc.setFont('helvetica', 'bold');
+    doc.text('User Information', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setTextColor(80);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Name: ${userProfile.name}`, margin, yPos);
+    yPos += lineHeight;
+    doc.text(`Email: ${userProfile.email}`, margin, yPos);
+    yPos += lineHeight * 2;
+
+    // Add credit summary
+    doc.setFontSize(16);
+    doc.setTextColor(40);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Credit Summary', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setTextColor(80);
+    
+    const creditData = [
+      { label: 'Credit Score', value: userProfile.creditScore || 'N/A' },
+      { label: 'Credit Utilization', value: userProfile.creditUtilization || 'N/A' },
+      { label: 'Payment History', value: userProfile.paymentHistory || 'N/A' },
+      { label: 'Total Accounts', value: userProfile.totalAccounts || 'N/A' },
+      { label: 'Total Debt', value: userProfile.totalDebt || 'N/A' },
+    ];
+
+    creditData.forEach(item => {
+      doc.text(`${item.label}: ${item.value}`, margin, yPos);
+      yPos += lineHeight;
+    });
+    
+    yPos += lineHeight;
+
+    // Function to capture components as images
+    const captureComponent = async (ref, componentName) => {
+      if (!ref) {
+        console.warn(`${componentName} ref not available`);
+        return yPos;
+      }
+
+      try {
+        const canvas = await html2canvas(ref, { 
+          scale: 2,
+          logging: false,
+          useCORS: true
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - margin * 2;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        if (yPos + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+          doc.addPage();
+          yPos = margin;
+        }
+        
+        doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+        return yPos + imgHeight + 10;
+      } catch (error) {
+        console.error(`Error capturing ${componentName}:`, error);
+        enqueueSnackbar(`Failed to include ${componentName} in report`, { variant: 'warning' });
+        return yPos;
+      }
+    };
+
+    // Capture all components
+    yPos = await captureComponent(creditScoreRef, 'Credit Score Card');
+    yPos = await captureComponent(creditTrendRef, 'Credit Trend Chart');
+    yPos = await captureComponent(creditUtilizationRef, 'Credit Utilization Chart');
+    yPos = await captureComponent(paymentHistoryRef, 'Payment History Chart');
+    yPos = await captureComponent(riskIndicatorsRef, 'Risk Indicators Chart');
+
+    // Add footer
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('This report was generated by Credit Dashboard App.', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+
+    // Close the generating notification
+    enqueueSnackbar.close(notificationKey);
+
+    // Save the PDF
+    doc.save(`${userProfile.name.replace(' ', '_')}_Credit_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    
+  } catch (error) {
+    console.error('Error in generatePDFReport:', error);
+    enqueueSnackbar('Failed to generate report', { variant: 'error' });
+    throw error;
+  }
+};
+
+export default ReportGenerator;
