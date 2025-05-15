@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import NavBar from './layout/NavBar';
+import NavBar from './layout/Navbar';
 import Footer from './layout/Footer';
 import { useInView } from 'react-intersection-observer';
 
