@@ -16,6 +16,7 @@ import PageNotFound from './components/PageNotFound';
 
 import AboutUs from './components/AboutUs';
 import Services from './components/Services';
+import ContactUs from './components/ContactUs';
 
 const root = createRoot(document.getElementById('root'));
 
@@ -38,6 +39,7 @@ root.render(
           {/* navigation links routes */}
           <Route path="/about" element={<AboutUs />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/contact" element={<ContactUs />} />
 
           {/* Dashboards */}
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
