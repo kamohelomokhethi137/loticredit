@@ -14,7 +14,7 @@ function AboutUs() {
   const [ref3, inView3] = useInView({ threshold: 0.1, triggerOnce: true });
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-100">
       <NavBar />
       
       {/* Hero Section */}
