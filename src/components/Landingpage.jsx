@@ -122,7 +122,7 @@ function LandingPage() {
   });
 
   return (
-    <div className="font-sans bg-gray-50">
+    <div className="font-sans bg-gray-100">
       {/* Navigation Bar */}
       <Navbar />
 
