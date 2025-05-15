@@ -29,24 +29,25 @@ function Navbar() {
                 initial={{ y: -100 }}
                 animate={{ 
                     y: 0,
-                    backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgb(255, 255, 255)',
-                    boxShadow: isScrolled ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
+                    backdropFilter: isScrolled ? 'blur(10px)' : 'blur(0px)',
+                    backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 1)',
+                    boxShadow: isScrolled ? '0 4px 30px rgba(0, 0, 0, 0.1)' : 'none'
                 }}
                 transition={{ 
                     type: "spring", 
                     stiffness: 300, 
                     damping: 20,
-                    backgroundColor: { duration: 0.3 }
+                    backgroundColor: { duration: 0.3 },
+                    backdropFilter: { duration: 0.3 }
                 }}
-                className="fixed w-full z-50 top-0 border-b border-gray-100"
+                className="fixed w-full z-50 top-0 border-b border-gray-100/20"
             >
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-6 py-3">
-                    <Link to="/" className="flex items-center">
+                    <Link to="/" className="flex items-center z-10">
                         <span className="self-center text-2xl font-bold text-blue-800">LotiCredit</span>
                     </Link>
                     
-                    <div className="flex md:order-2 space-x-4">
-                        {/* Desktop Auth Buttons - hidden on mobile */}
+                    <div className="flex md:order-2 space-x-4 z-10">
                         <div className="hidden md:flex space-x-3">
                             <motion.button
                                 whileHover={{ scale: 1.03 }}
@@ -67,7 +68,7 @@ function Navbar() {
                         <button 
                             onClick={toggleMenu}
                             type="button" 
-                            className="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none"
+                            className="inline-flex items-center p-2 w-10 h-10 justify-center text-gray-700 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none z-20"
                             aria-expanded={isMenuOpen}
                         >
                             <span className="sr-only">Open main menu</span>
@@ -85,12 +86,17 @@ function Navbar() {
                         {isMenuOpen && (
                             <motion.div 
                                 initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
+                                animate={{ 
+                                    opacity: 1, 
+                                    height: "auto",
+                                    backdropFilter: 'blur(10px)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                                }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="w-full md:hidden overflow-hidden"
+                                className="w-full md:hidden overflow-hidden absolute top-full left-0 right-0"
                             >
-                                <ul className="flex flex-col pt-2 pb-1 space-y-1 font-medium">
+                                <ul className="flex flex-col pt-2 pb-1 space-y-1 font-medium px-6">
                                     {navLinks.map((link) => (
                                         <motion.li
                                             key={link.path}
@@ -109,12 +115,11 @@ function Navbar() {
                                     ))}
                                 </ul>
                                 
-                                {/* Mobile Auth Buttons - only shown when menu is open */}
                                 <motion.div 
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.1 }}
-                                    className="flex flex-col space-y-3 px-4 py-3 border-t border-gray-100"
+                                    className="flex flex-col space-y-3 px-6 py-3 border-t border-gray-100/20"
                                 >
                                     <motion.button
                                         whileTap={{ scale: 0.98 }}
@@ -133,17 +138,21 @@ function Navbar() {
                         )}
                     </AnimatePresence>
 
-                    <div className="hidden w-full md:flex md:w-auto md:order-1">
+                    <div className="hidden w-full md:flex md:w-auto md:order-1 z-10">
                         <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium rounded-lg md:space-x-8 md:flex-row md:mt-0 md:border-0">
                             {navLinks.map((link) => (
-                                <li key={link.path}>
+                                <motion.li 
+                                    key={link.path}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
                                     <Link 
                                         to={link.path}
                                         className="block py-2 px-3 text-gray-700 hover:text-blue-600 rounded md:p-0 transition-colors font-medium"
                                     >
                                         {link.label}
                                     </Link>
-                                </li>
+                                </motion.li>
                             ))}
                         </ul>
                     </div>
