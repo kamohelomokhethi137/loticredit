@@ -13,6 +13,7 @@ import ConsumerDashboard from './components/ConsumerDashboard';
 import LendersDashboard from './components/LendersDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import PageNotFound from './components/PageNotFound';
+import AboutUs from './components/AboutUs';
 
 const root = createRoot(document.getElementById('root'));
 
@@ -31,6 +32,9 @@ root.render(
           {/* Auth routes */}
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
+
+          {/* navigation links routes */}
+          <Route path="/about" element={<AboutUs />} />
 
           {/* Dashboards */}
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
