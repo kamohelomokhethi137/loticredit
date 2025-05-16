@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import LenderPortfolio from './Lender/LenderPortfolio';
 import LoanApplications from './Lender/LoanApplications';
 import BorrowerAnalysis from './Lender/BorrowerAnalysis';
@@ -6,6 +7,7 @@ import RiskAssessment from './Lender/RiskAssessment';
 import LenderSettings from './Lender/LenderSettings';
 import LenderNavBar from './Lender/LenderNavBar';
 import LenderSidebar from './Lender/LenderSidebar';
+import NewLoanModal from './Lender/NewLoanModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
@@ -34,19 +36,48 @@ ChartJS.register(
 );
 
 function LenderDashboard() {
-  const lenderProfile = {
-    name: 'Acme Lending',
-    email: 'lending@acme.com',
-    avatar: 'https://via.placeholder.com/150',
-    institutionType: 'Commercial Bank',
-    totalPortfolio: 'M15,750,000'
-  };
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('portfolio');
   const [showNewLoanModal, setShowNewLoanModal] = useState(false);
+  const [notification, setNotification] = useState('');
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+
+  const handleLogin = async (credentials) => {
+    try {
+      const response = await axios.post('/api/auth/login', credentials);
+      const { token, user, lenderProfile } = response.data;
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      if (user.role === 'lender') {
+        localStorage.setItem('lenderProfile', JSON.stringify(lenderProfile));
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  const getLenderProfile = () => {
+    const storedProfile = localStorage.getItem('lenderProfile');
+    if (storedProfile) {
+      return JSON.parse(storedProfile);
+    }
+    return null;
+  };
+
+  const updateLenderProfile = async (updates) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.patch('/api/lender/profile', updates, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      localStorage.setItem('lenderProfile', JSON.stringify(response.data.profile));
+      return response.data.profile;
+    } catch (error) {
+      console.error('Update failed:', error);
+      throw error;
+    }
+  };
 
   const saveSettings = async (settingsData) => {
     try {
@@ -55,41 +86,41 @@ function LenderDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData),
       });
-
       if (!response.ok) throw new Error('Failed to save settings');
-
       const data = await response.json();
-      console.log('Lender settings saved:', data);
       alert('Settings saved successfully!');
+      console.log('Lender settings saved:', data);
     } catch (error) {
-      console.error('Error saving lender settings:', error);
       alert('Failed to save settings');
+      console.error('Error saving lender settings:', error);
     }
   };
 
   const LenderQuickActions = () => (
     <div className="bg-white p-4 sm:p-6 rounded-lg shadow dark:bg-gray-800 mb-4 sm:mb-6">
-      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3">Quick Actions</h3>
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3">
+        Quick Actions
+      </h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <button 
+        <button
           onClick={() => setShowNewLoanModal(true)}
           className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
           Create New Loan
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('applications')}
           className="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
           Review Applications
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('risk')}
           className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
           Risk Dashboard
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('reports')}
           className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
@@ -98,6 +129,15 @@ function LenderDashboard() {
       </div>
     </div>
   );
+
+  const lenderProfile = getLenderProfile() || {
+    name: 'Acme Lending',
+    email: 'lending@acme.com',
+    avatar:
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="150" height="150"><rect width="100" height="100" fill="%23348feb"/><text x="50" y="65" font-family="Arial" font-size="60" fill="white" text-anchor="middle">L</text></svg>',
+    institutionType: 'Commercial Bank',
+    totalPortfolio: 'M15,750,000'
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -108,10 +148,10 @@ function LenderDashboard() {
         setActiveTab={setActiveTab}
         lenderProfile={lenderProfile}
       />
-      
+
       <div className="flex-1 flex flex-col">
-        <LenderNavBar 
-          toggleSidebar={toggleSidebar} 
+        <LenderNavBar
+          toggleSidebar={toggleSidebar}
           activeTab={activeTab}
           lenderProfile={lenderProfile}
         />
@@ -182,59 +222,20 @@ function LenderDashboard() {
         </main>
       </div>
 
-      {/* New Loan Modal */}
-      {showNewLoanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md dark:bg-gray-800">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Create New Loan Product</h3>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              setShowNewLoanModal(false);
-            }}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Type</label>
-                <select className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" required>
-                  <option value="">Select loan type</option>
-                  <option value="personal">Personal Loan</option>
-                  <option value="mortgage">Mortgage</option>
-                  <option value="auto">Auto Loan</option>
-                  <option value="business">Business Loan</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interest Rate (%)</label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Term (months)</label>
-                <input 
-                  type="number" 
-                  className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600"
-                  required
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowNewLoanModal(false)}
-                  className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Create Loan Product
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* New Loan Modal controlled by state */}
+      <AnimatePresence>
+        {showNewLoanModal && (
+          <NewLoanModal
+            onClose={() => setShowNewLoanModal(false)}
+            setNotification={setNotification}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Optional: show notification */}
+      {notification && (
+        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
+          {notification}
         </div>
       )}
     </div>
