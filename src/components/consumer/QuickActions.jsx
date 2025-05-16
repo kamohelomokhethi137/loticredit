@@ -19,37 +19,37 @@ const QuickActions = ({ setActiveTab }) => {
     {
       id: 1,
       lender: "Prime Capital",
-      amount: "$5,000 - $50,000",
+      amount: "R75,000 - R750,000",
       rate: "5.99% APR",
       term: "12-60 months",
       description: "Personal loan with competitive rates for good credit",
-      requirements: "680+ credit score, $3k+ monthly income",
+      requirements: "680+ credit score, R40,000+ monthly income",
       darkColor: "bg-gray-800 border-gray-700"
     },
     {
       id: 2,
       lender: "QuickCash Solutions",
-      amount: "$1,000 - $10,000",
+      amount: "R15,000 - R150,000",
       rate: "8.49% APR",
       term: "6-36 months",
       description: "Fast approval for emergency expenses",
-      requirements: "600+ credit score, $2k+ monthly income",
+      requirements: "600+ credit score, R30,000+ monthly income",
       darkColor: "bg-gray-800 border-gray-700"
     },
     {
       id: 3,
       lender: "Elite Lending",
-      amount: "$10,000 - $100,000",
+      amount: "R150,000 - R1,500,000",
       rate: "4.75% APR",
       term: "24-84 months",
       description: "Low-interest loans for excellent credit",
-      requirements: "720+ credit score, $5k+ monthly income",
+      requirements: "720+ credit score, R75,000+ monthly income",
       darkColor: "bg-gray-800 border-gray-700"
     },
     {
       id: 4,
       lender: "Fresh Start Finance",
-      amount: "$500 - $5,000",
+      amount: "R7,500 - R75,000",
       rate: "12.99% APR",
       term: "3-24 months",
       description: "Credit builder loans with flexible terms",
@@ -59,11 +59,11 @@ const QuickActions = ({ setActiveTab }) => {
     {
       id: 5,
       lender: "Business Growth Capital",
-      amount: "$25,000 - $250,000",
+      amount: "R375,000 - R3,750,000",
       rate: "6.49% APR",
       term: "12-120 months",
       description: "Business expansion loans with deferred payments",
-      requirements: "2+ years in business, $10k+ monthly revenue",
+      requirements: "2+ years in business, R150,000+ monthly revenue",
       darkColor: "bg-gray-800 border-gray-700"
     }
   ];
