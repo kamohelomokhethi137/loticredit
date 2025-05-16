@@ -109,9 +109,9 @@ const Login = () => {
       // Role-based navigation for lender, consumer, and admin
       setTimeout(() => {
         const dashboardPaths = {
-          admin: '/admin/dashboard',
-          lender: '/lender/dashboard',
-          consumer: '/consumer/dashboard'
+          admin: '/admin',
+          lender: '/lender',
+          consumer: '/consumer'
         };
 
         navigate(dashboardPaths[user.role] || '/dashboard');
