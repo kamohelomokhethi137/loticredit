@@ -42,7 +42,7 @@ function ConsumerDashboard() {
   const { enqueueSnackbar } = useSnackbar();
   const userProfile = {
     name: 'John Doe',
-    email: 'john.doe@example.com',
+    email: 'neo.mk@example.com',
     avatar: 'https://via.placeholder.com/150',
     creditScore: 720,
     creditUtilization: '30%',
