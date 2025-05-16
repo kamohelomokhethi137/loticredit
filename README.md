@@ -1,12 +1,81 @@
-# React + Vite
+# 💳 LotiCredit – Credit Bureau Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LotiCredit is a full-stack **Credit Bureau Management System** built with **React.js**, **Express.js**, **Node.js**, **MongoDB**, **Tailwind CSS**, and **Framer Motion**. The system helps lenders assess creditworthiness by providing access to consumer credit data such as previous loan behavior, repayment history, and risk profiles.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎯 Project Objective
 
-## Expanding the ESLint configuration
+The goal of this project is to give students real-world experience in designing, developing, and maintaining a NoSQL-based application. This includes:
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Conceptual and logical system design.
+- Backend development with Node.js, Express.js, and MongoDB.
+- Frontend development with React.js and Tailwind CSS.
+- Enhancing user experience with animation (Framer Motion).
+
+The system allows credit bureaus to collect, store, and share consumer credit information with lenders, enabling smarter decisions when approving loans or setting interest rates.
+
+---
+
+## 🚀 Tech Stack
+
+| Layer     | Technology             |
+|-----------|------------------------|
+| Frontend  | React.js, Tailwind CSS, Framer Motion |
+| Backend   | Node.js, Express.js    |
+| Database  | MongoDB                |
+| Auth & API| JWT Authentication, RESTful API |
+
+---
+
+## 📂 Project Structure
+
+loticredit/
+├── client/ # React frontend
+├── server/ # Express backend
+├── .env # Environment variables (not committed)
+└── README.md # Project documentation
+
+
+
+---
+
+## 🛠️ Getting Started
+
+Follow these steps to run the project locally:
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/kamohelomokhethi137/loticredit.git
+cd loticredit
+cd server
+npm install
+
+
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+CLIENT_URL=http://localhost:3000
+npm run dev
+cd ../client
+npm install
+VITE_API_URL=http://localhost:5000/api
+
+
+```
+
+🔐 Features
+✅ User authentication with email verification
+
+✅ Role-based access: Lender, Consumer, Admin
+
+✅ Lender dashboard: View credit histories, risk profiles
+
+✅ Consumer dashboard: View personal credit activity
+
+✅ Responsive and modern UI (Tailwind CSS)
+
+✅ Smooth page transitions and animations (Framer Motion)
+
+✅ REST API with secure route
