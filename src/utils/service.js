@@ -1,1 +1,1 @@
-export const baseUrl = "http://server-bj4k.onrender.com";
+export const baseUrl = "https://server-bj4k.onrender.com";
