@@ -1,283 +1,364 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
+import { FaGoogle, FaUserPlus, FaUserShield, FaUserTie, FaUserCog, FaEnvelope, FaSpinner, FaCheckCircle, FaShoppingCart, FaMoneyBillWave } from 'react-icons/fa';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import SecurityBubbles from './animation/SecurityBubbles';
+import { baseUrl } from '../utils/service';
 
+const Signup = () => {
+  const navigate = useNavigate();
+  
+  // Define available roles
+  const ROLES = {
+    CONSUMER: 'consumer',
+    LENDER: 'lender'
+  };
 
-const SignupForm = () => {
-
-  const { enqueueSnackbar } = useSnackbar();
-
-
+  const ROLE_DESCRIPTIONS = {
+    [ROLES.CONSUMER]: 'Consumer - Product/service consumer with limited access',
+    [ROLES.LENDER]: 'Lender - Financial lender with credit access'
+  };
 
   const [formData, setFormData] = useState({
-      name: '',
-      email: '',
-      password: '',
-      role: '' });
-
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: ROLES.CONSUMER 
+  });
 
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signupStatus, setSignupStatus] = useState(null); 
+  const fullNameRef = useRef(null);
 
-  const validateName = (name) => {
-    return name.trim().split(' ').length >= 2;
-  };
-
-  const validatePassword = (password) => {
-    const upper = /[A-Z]/.test(password);
-    const number = /\d/.test(password);
-    const special = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return {
-      isValid: upper && number && special,
-      upper,
-      number,
-      special
-    };
-  };
+  useEffect(() => {
+    fullNameRef.current.focus();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Email is invalid';
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.role) newErrors.role = 'Role is required';
+    
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const currentErrors = {};
-
-    if (!validateName(formData.name)) {
-      currentErrors.name = 'Full name must include both first and last name.';
-    }
-
-    if (!formData.email.includes('@')) {
-      currentErrors.email = 'Please enter a valid email address.';
-    }
-
-    const passwordValidation = validatePassword(formData.password);
-    if (!passwordValidation.isValid) {
-      currentErrors.password = 'Password must include uppercase letter, number, and special character.';
-    }
-
-    if (Object.keys(currentErrors).length > 0) {
-      setErrors(currentErrors);
+    const newErrors = validate();
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      if (firstErrorField === 'fullName') fullNameRef.current.focus();
+      else if (firstErrorField === 'email') e.target.email.focus();
+      else if (firstErrorField === 'password') e.target.password.focus();
+      else if (firstErrorField === 'confirmPassword') e.target.confirmPassword.focus();
+      else if (firstErrorField === 'role') e.target.role.focus();
       return;
     }
 
-    if (!formData.role) {
-      currentErrors.role = 'Please select a role.';
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(`${baseUrl}/api/auth/signup`, {
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      });
+
+      // Handle different success cases based on response
+      if (response.data.message === 'Check email to verify your account') {
+        setSignupStatus('requires_verification');
+        toast.success(
+          <div className="flex items-center">
+            <FaEnvelope className="text-blue-500 mr-2" size={20} />
+            <span>Verification email sent! Please check your inbox.</span>
+          </div>,
+          {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+        
+        // Navigate to email confirmation page after delay
+        setTimeout(() => {
+          navigate('/email-confirmation', { 
+            state: { 
+              email: formData.email,
+              fullName: formData.fullName 
+            } 
+          });
+        }, 3000);
+      } else {
+        // Direct login case (if verification not required)
+        setSignupStatus('success');
+        toast.success(
+          <div className="flex items-center">
+            <FaCheckCircle className="text-green-500 mr-2" size={20} />
+            <span>Account created successfully! Redirecting...</span>
+          </div>,
+          {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+        
+        // Redirect to dashboard after delay
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000);
+      }
+
+    } catch (err) {
+      console.error('Signup failed:', err.response?.data || err.message);
+      
+      // Handle specific error cases
+      if (err.response?.data?.message === 'Email already exists') {
+        setErrors({ email: 'Email already exists' });
+        toast.error('Email already registered. Please login instead.', {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } else if (err.response?.data?.message === 'Invalid role specified') {
+        setErrors({ role: 'Invalid role selected' });
+        toast.error('Please select a valid role', {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      } else {
+        toast.error(err.response?.data?.message || 'Signup failed. Please try again later.', {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-    
-
-    setIsLoading(true);
-    // Add backend request here later
-    setTimeout(() => {
-      setIsLoading(false);
-      enqueueSnackbar('Account created successfully!', { variant: 'success' });
-    }, 1500);
-    
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
+  const handleGoogleSignup = () => {
+    window.location.href = `${baseUrl}/api/auth/google`;
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+  const getRoleIcon = (role) => {
+    switch(role) {
+      case ROLES.CONSUMER: return <FaShoppingCart className="mr-2" />;
+      case ROLES.LENDER: return <FaMoneyBillWave className="mr-2" />;
+      default: return <FaUserPlus className="mr-2" />;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 relative">
+      <ToastContainer />
+      <SecurityBubbles />
+      
       <motion.div
-        className="w-full max-w-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8"
       >
-        <motion.div className="p-6 sm:p-8" variants={itemVariants}>
-          <motion.div 
-            className="flex items-center gap-2 mb-6"
-            variants={itemVariants}
-          >
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Create Account</h1>
-          </motion.div>
-
-          <motion.form className="space-y-4" onSubmit={handleSubmit} variants={itemVariants}>
-            <motion.div variants={itemVariants}>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                disabled={isLoading}
-                placeholder="kamohelo mokhethi"
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:focus:ring-cyan-500 dark:focus:border-cyan-500 bg-gray-50 dark:bg-gray-700 ${
-                  errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400`}
-                value={formData.name}
-                onChange={handleChange}
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                disabled={isLoading}
-                placeholder="your@email.com"
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:focus:ring-cyan-500 dark:focus:border-cyan-500 bg-gray-50 dark:bg-gray-700 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400`}
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Select Role
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  required
-                  disabled={isLoading}
-                  value={formData.role}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:focus:ring-cyan-500 dark:focus:border-cyan-500 bg-gray-50 dark:bg-gray-700 ${
-                    errors.role ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } text-gray-900 dark:text-white`}
-                >
-                  <option value="" disabled>Select your role</option>
-                  <option value="lender">Lender</option>
-                  <option value="consumer">consumer</option>
-                </select>
-                {errors.role && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.role}</p>}
-              </motion.div>
-
-
-            <motion.div variants={itemVariants}>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:focus:ring-cyan-500 dark:focus:border-cyan-500 bg-gray-50 dark:bg-gray-700 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 pr-10`}
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  {showPassword ? '🙈' : '👁️'}
-                </button>
-              </div>
-              {errors.password ? (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
-              ) : (
-                formData.password && (
-                  <div className="mt-2">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Password strength:</div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                      <div 
-                        className={`h-1.5 rounded-full ${
-                          validatePassword(formData.password).isValid ? 'bg-green-500' : 
-                          formData.password.length >= 6 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`} 
-                        style={{ width: `${Math.min(100, (formData.password.length / 8) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Must contain: uppercase, number, special character
-                    </div>
-                  </div>
-                )
-              )}
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <motion.button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-75"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+        {signupStatus === 'requires_verification' ? (
+          <div className="text-center py-8">
+            <div className="mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+              <FaEnvelope className="text-blue-500 dark:text-blue-400 text-4xl" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Verify Your Email</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              We've sent a confirmation link to <span className="font-semibold">{formData.email}</span>.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Didn't receive the email? <button 
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+                onClick={() => handleResendVerification(formData.email)}
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Creating Account...
-                  </>
-                ) : 'Sign Up'}
-              </motion.button>
-            </motion.div>
-          </motion.form>
-
-          <motion.div className="mt-6" variants={itemVariants}>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                Resend verification
+              </button>
+            </p>
+          </div>
+        ) : signupStatus === 'success' ? (
+          <div className="text-center py-8">
+            <div className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
+              <FaCheckCircle className="text-green-500 dark:text-green-400 text-4xl" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Account Created!</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              You're being redirected to your dashboard...
+            </p>
+          </div>
+        ) : (
+          <div>
+            <div className="text-center mb-8">
+              <div className="mx-auto w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
+                <FaUserPlus className="text-blue-600 dark:text-blue-400 text-3xl" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Or
-                </span>
-              </div>
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Create an Account</h1>
+              <p className="text-gray-600 dark:text-gray-400">Select your role to get started</p>
             </div>
 
-            <motion.div className="mt-6" variants={itemVariants}>
-              <button
-                type="button"
-                disabled={isLoading}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-75 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                <input
+                  ref={fullNameRef}
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500`}
+                  placeholder="kamohelo mokhethi"
+                />
+                {errors.fullName && <p className="text-sm text-red-600 mt-1">{errors.fullName}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500`}
+                  placeholder="you@example.com"
+                />
+                {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500`}
+                  placeholder="••••••••"
+                />
+                {errors.password && <p className="text-sm text-red-600 mt-1">{errors.password}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500`}
+                  placeholder="••••••••"
+                />
+                {errors.confirmPassword && <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Your Role</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.role ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500`}
+                >
+                  <option value={ROLES.CONSUMER}>Consumer</option>
+                  <option value={ROLES.LENDER}>Lender</option>
+                </select>
+                {errors.role && <p className="text-sm text-red-600 mt-1">{errors.role}</p>}
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {ROLE_DESCRIPTIONS[formData.role]}
+                </p>
+              </div>
+
+              <motion.button
+                type="submit"
+                disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                className={`w-full px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                 <svg stroke="currentColor" fill="currentColor" strokeWidth="0" version="1.1"
-                        x="0px" y="0px" viewBox="0 0 48 48" enableBackground="new 0 0 48 48"
-                        height="20" width="20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657 C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                  </svg>
-                continue with Google
-              </button>
-            </motion.div>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <FaSpinner className="animate-spin mr-2" />
+                    Creating Account...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center">
+                    {getRoleIcon(formData.role)}
+                    Sign Up
+                  </div>
+                )}
+              </motion.button>
+            </form>
 
-            <motion.div className="mt-6 text-center" variants={itemVariants}>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Already have an account?{' '}
-                <Link to="/signin" className="font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-400 dark:hover:text-cyan-300">
-                  Login here
-                </Link>
-              </p>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+              <span className="px-3 text-gray-500 dark:text-gray-400 text-sm">OR</span>
+              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+
+            <motion.button
+              onClick={handleGoogleSignup}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FaGoogle className="text-blue-500 dark:text-blue-400" />
+              <span>Continue with Google</span>
+            </motion.button>
+
+            <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
+              Already have an account?{' '}
+              <button 
+                onClick={() => navigate('/login')}
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Log in
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );
 };
 
-export default SignupForm;
+// Helper function to resend verification email
+const handleResendVerification = async (email) => {
+  try {
+    const response = await axios.post(`${baseUrl}/api/auth/resend-verification`, { email });
+    toast.success('Verification email resent successfully!', {
+      position: "top-center",
+      autoClose: 3000,
+    });
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to resend verification email', {
+      position: "top-center",
+      autoClose: 3000,
+    });
+  }
+};
+
+export default Signup;

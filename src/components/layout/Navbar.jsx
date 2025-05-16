@@ -54,14 +54,14 @@ function Navbar() {
                                 whileTap={{ scale: 0.98 }}
                                 className="px-4 py-2 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
                             >
-                                Sign In
+                                <Link to="/login">Sign In</Link>
                             </motion.button>
                             <motion.button
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
                             >
-                                Sign Up
+                                <Link to="/signup">Sign Up</Link>
                             </motion.button>
                         </div>
                         
@@ -125,13 +125,13 @@ function Navbar() {
                                         whileTap={{ scale: 0.98 }}
                                         className="w-full py-2.5 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
                                     >
-                                        Sign In
+                                        <Link to="/login">Sign In</Link>
                                     </motion.button>
                                     <motion.button
                                         whileTap={{ scale: 0.98 }}
                                         className="w-full py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
                                     >
-                                        Sign Up
+                                        <Link to="/signup">Sign Up</Link>
                                     </motion.button>
                                 </motion.div>
                             </motion.div>

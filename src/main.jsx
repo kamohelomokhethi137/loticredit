@@ -7,7 +7,7 @@ import { SnackbarProvider } from 'notistack';
 import './index.css';
 
 import App from './App';
-import Signin from './components/Signin';
+import Login from './components/Login';
 import Signup from './components/Signup';
 import ConsumerDashboard from './components/ConsumerDashboard';
 import LendersDashboard from './components/LendersDashboard';
@@ -18,8 +18,11 @@ import AboutUs from './components/AboutUs';
 import Services from './components/Services';
 import ContactUs from './components/ContactUs';
 
-const root = createRoot(document.getElementById('root'));
+import VerificationAccount from './components/VerificationAccount'; 
+import EmailConfirmation from './components/EmailConfirmation';
 
+const root = createRoot(document.getElementById('root'));
+  
 root.render(
   <StrictMode>
     <SnackbarProvider 
@@ -33,7 +36,7 @@ root.render(
           <Route path="/" element={<App />} />
           
           {/* Auth routes */}
-          <Route path="/signin" element={<Signin />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           {/* navigation links routes */}
@@ -42,9 +45,13 @@ root.render(
           <Route path="/contact" element={<ContactUs />} />
 
           {/* Dashboards */}
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/consumer-dashboard" element={<ConsumerDashboard />} />
-          <Route path="/lenders-dashboard" element={<LendersDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/consumer" element={<ConsumerDashboard />} />
+          <Route path="/lender" element={<LendersDashboard />} />
+
+
+           <Route path="/auth/verify-email" element={<VerificationAccount />} />
+           <Route path="/email-confirmation" element={<EmailConfirmation />} />
 
           {/* 404 - Catch-all */}
           <Route path="*" element={<PageNotFound />} />

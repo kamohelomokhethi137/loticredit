@@ -25,11 +25,11 @@ const SettingsDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-              <input id="firstName" type="text" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="John" />
+              <input id="firstName" type="text" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="name" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-              <input id="lastName" type="text" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="Doe" />
+              <input id="lastName" type="text" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="lastname" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
@@ -37,7 +37,7 @@ const SettingsDashboard = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
-              <input id="phone" type="tel" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="+1 (555) 123-4567" />
+              <input id="phone" type="tel" className="w-full border rounded-lg p-2 text-sm dark:bg-gray-700 dark:border-gray-600" defaultValue="+266 58128118" />
             </div>
           </div>
         </div>
